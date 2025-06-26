@@ -1,0 +1,77 @@
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+# icstest
+
+<!-- badges: start -->
+<!-- badges: end -->
+
+The goal of **icstest** is to provide methods for testing informative
+cluster size (ICS) in cluster randomized trials. Informative cluster
+size occurs when treatment effects depend on the size of clusters, which
+can bias standard analyses that ignore this relationship.
+
+## Installation
+
+You can install the development version of icstest from GitHub with:
+
+``` r
+devtools::install_github("Zhe-Chen-1999/icstest")
+```
+
+## Overview
+
+The package implements three approaches for testing informative cluster
+size:
+
+- **Model-Assisted Test**: Test coefficient for treatment in an ordinary
+  least squares (OLS) regression of weighted cluster means, where
+  weights are proportional to deviations of each cluster size from the
+  average cluster size
+- **Randomization-Based Test**: Permute the cluster-level treatments and
+  compute the model-assisted test statistic for each permutation. The
+  p-value is the proportion of permuted test statistics that are as or
+  more extreme than the observed test statistic
+- **Model-Based Test**: Test coefficients for interactions between
+  treatment and cluster size in a generalized estimating equation (GEE)
+  outcome model
+
+## Example
+
+This is a basic example which shows you how to test for informative
+cluster size:
+
+``` r
+library(icstest)
+
+# Generate example data with informative cluster sizes
+set.seed(123)
+n_clusters <- 100
+cluster_sizes <- sample(20:80, n_clusters, replace = TRUE)
+cluster_size <- rep(cluster_sizes, cluster_sizes)
+n <- sum(cluster_sizes)
+cluster_id <- rep(1:n_clusters, cluster_sizes)
+Z <- rep(rbinom(n_clusters, 1, 0.5), cluster_sizes)
+
+# Generate outcomes with cluster size-dependent treatment effects
+Y0 <- rnorm(n) + rep(rnorm(n_clusters), cluster_sizes)
+tau <- rnorm(n) + rep(1.5 * (cluster_sizes > 50), cluster_sizes)
+Y <- Y0 + tau * Z
+
+# Run model-assisted test
+ma_result <- model_assisted_test(Y, Z, cluster_id)
+
+# Randomization-Based Test
+rand_result <- randomization_test(Y, Z, cluster_id, n_perms = 5000)
+
+# Model-Based Test
+data <- data.frame(
+  Y = Y, 
+  Z = Z, 
+  cluster_size = cluster_size,
+  cluster_id = cluster_id
+)
+
+formula <- Y ~ Z * cluster_size # Test linear interaction
+mb_result <- model_based_test(formula, "Z:cluster_size", data, cluster_id)
+```
