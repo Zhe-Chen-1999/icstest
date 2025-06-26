@@ -61,10 +61,10 @@ Y <- Y0 + tau * Z
 # Run model-assisted test
 ma_result <- model_assisted_test(Y, Z, cluster_id)
 
-# Randomization-Based Test
+# Run Randomization-Based Test
 rand_result <- randomization_test(Y, Z, cluster_id, n_perms = 5000)
 
-# Model-Based Test
+# Run Model-Based Test
 data <- data.frame(
   Y = Y, 
   Z = Z, 
@@ -73,5 +73,6 @@ data <- data.frame(
 )
 
 formula <- Y ~ Z * cluster_size # Test linear interaction
+
 mb_result <- model_based_test(formula, "Z:cluster_size", data, cluster_id)
 ```
